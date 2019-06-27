@@ -8,7 +8,7 @@ Created on Thu Jun 27 15:32:08 2019
 
 import numpy as np
 import random
-import gauss_binary as gb
+from . import gauss_binary as gb
 
 
 ##### FINDS A GRAPH STATE THAT IS LOCAL CLIFFORD EQUIVALENT TO A GIVEN 
