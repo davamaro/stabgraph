@@ -3,12 +3,12 @@
 import io
 from setuptools import setup, find_packages
 
-long_description=io.open("README.md",encoding='utf-8').read()
+#long_description=io.open("README.md",encoding='utf-8').read()
 
 setup(name='stabgraph',
       version='0.1',
       description='Transforms stabilizer state into graph state',
-      long_description=long_description,
+      long_description='Transforms stabilizer state into graph state',
 #      long_description_content_type="text/markdown",
       classifiers=[
           "Programming Language :: Python :: 3.5",
