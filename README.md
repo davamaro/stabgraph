@@ -80,20 +80,3 @@ Steane code in the |0> logical state. Shuffle=True to obtain different outputs
 S = ['XXXXIII','IXXIXXI','IIXXIXX','ZZZZIII','IZZIZZI','IIZZIZZ','ZZZZZZZ']
 G , c , t , z , R = stabgraph.convert(S,shuffle=True)
 ```
-
-
-
-
-        
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-<<<<<<< HEAD
-[MIT](https://choosealicense.com/licenses/mit/)
-=======
-[MIT](https://choosealicense.com/licenses/mit/)
->>>>>>> master
