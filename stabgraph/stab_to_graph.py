@@ -131,7 +131,3 @@ def convert(stabs, control=None, target=None, shuffle=False):
     G = np.array([G[qubits.index(i)] for i in range(N)])
     G = np.array([G[:, qubits.index(i)] for i in range(N)]).T
     return G, sorted(control), sorted(target), sorted(z), R
-
-
-stabs = ['XX', 'ZZ']
-G, c, t, z, R = convert(stabs)
