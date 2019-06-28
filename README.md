@@ -93,3 +93,12 @@ Steane code in the |0> logical state. `shuffle=True` to obtain different outputs
 S = ['XXXXIII','IXXIXXI','IIXXIXX','ZZZZIII','IZZIZZI','IIZZIZZ','ZZZZZZZ']
 G , c , t , z , R = stabgraph.convert(S,shuffle=True)
 ```
+
+## Citation
+```
+@article{amaro2019,
+  author = 	"Author",
+  title = 	"Title",
+  year = 	"2019"
+}
+```
