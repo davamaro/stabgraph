@@ -23,6 +23,7 @@ setup(name='stabgraph',
       license='Apache 2',
       packages=find_packages(),
       download_url='https://github.com/davamaro/stabgraph/archive/0.1.zip',
+      python_requires='>=3.5',     
       install_requires=[
           'numpy',
       ],
