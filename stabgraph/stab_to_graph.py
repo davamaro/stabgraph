@@ -138,4 +138,4 @@ def convert(S , c=[] , t=[] , shuffle=False):
     G = np.block([[C,B.T],[B,np.zeros((N-n,N-n),dtype=int)]])
     G = np.array([G[qubits.index(i)] for i in range(N)])
     G = np.array([G[:,qubits.index(i)] for i in range(N)]).T
-    return G , c , t , z , R    
+    return G , sorted(c) , sorted(t) , sorted(z) , R    
