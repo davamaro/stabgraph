@@ -7,11 +7,13 @@ into the other.
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Either use [pip](https://pip.pypa.io/en/stable/) to install stabgraph:
 
 ```bash
-pip install foobar
+pip install stabgraph
 ```
+
+
 
 ## Usage
 
@@ -65,8 +67,17 @@ EXAMPLES
 
 Bell pair
 ```
-S = ['XX','ZZ']
-G , c , t , z , R = stabgraph.convert(S)
+>>> S = ['XX','ZZ']
+>>> G , c , t , z , R = stabgraph.convert(S)
+>>> G
+
+>>> c
+
+>>> t
+
+>>> z
+
+>>> R
 ```
 
 GHZ state fixing 0 as a control qubit and 1 as a target qubit
@@ -75,7 +86,7 @@ S = ['XXX','ZZI','IZZ']
 G , c , t , z , R = stabgraph.convert(S,[0],[1])
 ```
 
-Steane code in the |0> logical state. Shuffle=True to obtain different outputs
+Steane code in the |0> logical state. shuffle=True to obtain different outputs
 ```
 S = ['XXXXIII','IXXIXXI','IIXXIXX','ZZZZIII','IZZIZZI','IIZZIZZ','ZZZZZZZ']
 G , c , t , z , R = stabgraph.convert(S,shuffle=True)
