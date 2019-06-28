@@ -1,9 +1,12 @@
 # stabgraph
 
 Every stabilizer state can be transformed into a graph state by means of a local 
-Clifford unitary. stabgraph is a python package that, given a stabilizer state,
-it finds such a graph state and the local Clifford unitary that transforms one
-into the other.  
+Clifford unitary. stabgraph is contains the function `convert` that, given a 
+stabilizer state, it finds such a graph state and the local Clifford unitary 
+that transforms the stabilizer state into the graph state. This function follows
+the steps described in the article [1].
+
+[1] Manuscript under preparation. 
 
 ## Installation
 
@@ -22,29 +25,29 @@ Replace `python` with `python3` as appropriate.
 ```python
 import stabgraph
 
-G , c , t , z , R = stabgraph.convert(S,c=[],t=[],shuffle=False) 
+G , c , t , z , R = stabgraph.convert(stabs,control=None,target=None,shuffle=False) 
 ```
-INPUTS
+#INPUT
 
-`S`       contains the N stabilizer operators defining a stabilizer state of N 
-        qubits. It is a list of N strings 'PPPP...', one for each stabilizer 
-        operator. Every string has N elements 'P' from the set 'I', 'X', 'Y', 
-        'Z', that represents the set of Pauli matrices.
+`stabs`     contains the N stabilizer operators defining a stabilizer state of N 
+            qubits. It is a list of N strings 'PPPP...', one for each stabilizer 
+            operator. Every string has N elements 'P' from the set 'I', 'X', 'Y', 
+            'Z', that represents the set of Pauli matrices.
 
-OPTIONAL INPUTS
+#OPTIONAL INPUTS
 
-`c`       is a list of control qubits. Gives the option to set some qubits as 
-        control qubits. Qubits are labelled from 0 to N-1. It is an empy list by
-        default.
+`control`   is a list of control qubits. Gives the option to set some qubits as 
+            control qubits. Qubits are labelled from 0 to N-1. It is an empy list by
+            default.
         
-`t`       is a list of target qubits. Gives the option to set some qubits as
-        target qubits. Qubits are labelled from 0 to N-1. It is an empty list by
-        default.
+`target`    is a list of target qubits. Gives the option to set some qubits as
+            target qubits. Qubits are labelled from 0 to N-1. It is an empty list by
+            default.
         
-`shuffle` can be set to be True. For a given stabilizer state there are multiple 
-        local Clifford equivalent graph states that can be obtained by this 
-        program. If shuffle=True the output graph is one of these graphs chosen 
-        randomly. shuffle=False by default.
+`shuffle`   can be set to be True. For a given stabilizer state there are multiple 
+            local Clifford equivalent graph states that can be obtained by this 
+            program. If shuffle=True the output graph is one of these graphs chosen 
+            randomly. shuffle=False by default.
         
 OUTPUTS
 
@@ -69,36 +72,50 @@ EXAMPLES
 
 Bell pair
 ```
->>> S = ['XX','ZZ']
->>> G , c , t , z , R = stabgraph.convert(S)
+>>> stabs = ['XX','ZZ']
+>>> G , c , t , z , R = stabgraph.convert(stabs)
 >>> G
-
+np.array([[0,1],[1,0]])
 >>> c
-
+[0]
 >>> t
-
+[1]
 >>> z
-
+[]
 >>> R
+np.array([[1,0],[0,1]])
 ```
 
 GHZ state fixing 0 as a control qubit and 1 as a target qubit
 ```
-S = ['XXX','ZZI','IZZ']
-G , c , t , z , R = stabgraph.convert(S,[0],[1])
+>>> stabs = ['XXX','ZZI','IZZ']
+>>> G , c , t , z , R = stabgraph.convert(stabs,[0],[1])
+>>> c
+[0]
+>>> t
+[1,2]
 ```
 
-Steane code in the |0> logical state. `shuffle=True` to obtain different outputs
+Steane code in the |0> logical state. 
+Multiple graphs can be obtained, so put `shuffle=True` to obtain one of them randomly chosen.
+The result respects the selection of control and target qubits
 ```
-S = ['XXXXIII','IXXIXXI','IIXXIXX','ZZZZIII','IZZIZZI','IIZZIZZ','ZZZZZZZ']
-G , c , t , z , R = stabgraph.convert(S,shuffle=True)
+>>> stabs = ['XXXXIII','IXXIXXI','IIXXIXX','ZZZZIII','IZZIZZI','IIZZIZZ','ZZZZZZZ']
+>>> G , c , t , z , R = stabgraph.convert(stabs, control = [0], shuffle=True)
+>>> c
+[0,1,2]
+>>> G , c , t , z , R = stabgraph.convert(stabs, control = [2, 5], shuffle=True)
+>>> c
+[2,5,6]
+
 ```
 
 ## Citation
 ```
 @article{amaro2019,
-  author = 	"Author",
-  title = 	"Title",
-  year = 	"2019"
+  author = 	"David Amaro and Markus Müller and Amit Kumar Pal",
+  title = 	"Scalable characterization of localizable entanglement in noisy topological quantum codes",
+  year = 	"2019",
+  month =   "July"
 }
 ```
