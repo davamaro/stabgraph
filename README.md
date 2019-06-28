@@ -1,4 +1,4 @@
-# stabgraph
+# StabGraph
 
 Every stabilizer state can be transformed into a graph state by means of a local 
 Clifford unitary. stabgraph is contains the function `convert` that, given a 
@@ -113,10 +113,13 @@ The result respects the selection of control and target qubits
 
 ## Citation
 ```
-@article{amaro2019,
-  author = 	"David Amaro and Markus Müller and Amit Kumar Pal",
-  title = 	"Scalable characterization of localizable entanglement in noisy topological quantum codes",
+@misc{amaro2019,
+  author = 	"David Amaro",
+  title = 	"StabGraph",
   year = 	"2019",
-  month =   "July"
+  month =   "July",
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/davamaro/stabgraph}}
 }
 ```
