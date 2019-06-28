@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 long_description=io.open("README.md",encoding='utf-8').read()
 
 setup(name='stabgraph',
-      version='0.1.1',
+      version='0.1.2',
       description='Transforms stabilizer state into graph state',
       long_description=long_description,
       long_description_content_type="text/markdown",
