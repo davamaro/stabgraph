@@ -27,14 +27,15 @@ import stabgraph
 
 G , c , t , z , R = stabgraph.convert(stabs,control=None,target=None,shuffle=False) 
 ```
-#INPUT
+
+INPUT
 
 `stabs`     contains the N stabilizer operators defining a stabilizer state of N 
             qubits. It is a list of N strings 'PPPP...', one for each stabilizer 
             operator. Every string has N elements 'P' from the set 'I', 'X', 'Y', 
             'Z', that represents the set of Pauli matrices.
 
-#OPTIONAL INPUTS
+OPTIONAL INPUTS
 
 `control`   is a list of control qubits. Gives the option to set some qubits as 
             control qubits. Qubits are labelled from 0 to N-1. It is an empy list by
