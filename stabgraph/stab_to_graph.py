@@ -86,15 +86,15 @@ def convert(stabs, control=None, target=None, shuffle=False):
         raise Exception('too many target qubits selected')
     if gb.rank(A[:n, :len(control)]) < len(control):
         raise Exception('wrong selection of control qubits')    
-    # select control and target qubits 
+    # select control and target qubits
     for i in range(len(control), n):
         for j in range(i, N):
             if A[i, j] and qubits[j] not in target and qubits[j] not in control:
                 control.append(qubits[j])
                 break
-            elif qubits[j] not in target:
+            elif qubits[j] not in target and qubits[j] not in control:
                 target.append(qubits[j])
-    target = target + list(set(range(N))-set(control).union(set(target)))
+    target = target + list(set(range(N))-set(control).union(set(target)))  # add missing qubits
     if len(control) != n:
         raise Exception('wrong selection of control and/or target qubits')    
     # put A back to the original form
