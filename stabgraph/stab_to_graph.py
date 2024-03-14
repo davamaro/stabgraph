@@ -66,10 +66,11 @@ def convert(stabs, control=None, target=None, shuffle=False):
             raise Exception('target qubits must be labelled from 0 to N-1')
     # shuffle rows
     if shuffle:
-        qubits = control + random.sample(set(range(N))-(set(control).union(set(target))), N-len(control)-len(target)) +\
-                                                                                          target
+        remaining = set(range(N))-set(control).union(set(target))
+        qubits = control + random.sample(sorted(remaining), N-len(control)-len(target)) + target
     else:
-        qubits = control + list(set(range(N))-(set(control).union(set(target)))) + target
+        remaining = set(range(N)) - set(control).union(set(target))
+        qubits = control + list(remaining) + target
     # reorder rows in A
     A = np.array([A[qubits[i]] for i in range(N)] + [A[qubits[i]+N] for i in range(N)])
     # put A in the form that allows to make Gauss elimination in the right way add the identity to monitor the
