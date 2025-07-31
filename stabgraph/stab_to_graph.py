@@ -93,8 +93,8 @@ def convert(stabs, control=None, target=None, shuffle=False):
             if A[i, j] and qubits[j] not in target and qubits[j] not in control:
                 control.append(qubits[j])
                 break
-            elif qubits[j] not in target and qubits[j] not in control:
-                target.append(qubits[j])
+            # elif qubits[j] not in target and qubits[j] not in control:
+            #     target.append(qubits[j])
     target = target + list(set(range(N))-set(control).union(set(target)))  # add missing qubits
     if len(control) != n:
         raise Exception('wrong selection of control and/or target qubits')    
