@@ -11,6 +11,46 @@ import random
 from . import gauss_binary as gb
 
 
+VALID_PAULIS = {'I', 'X', 'Y', 'Z'}
+
+
+def _validate_stabilizers(stabs):
+    if not stabs:
+        raise ValueError('stabs must be a non-empty list of Pauli strings')
+
+    N = len(stabs[0])
+    if N == 0:
+        raise ValueError('stabilizers must act on at least one qubit')
+    if len(stabs) != N:
+        raise ValueError('stabs must contain exactly N independent generators for N qubits')
+
+    for stab in stabs:
+        if len(stab) != N:
+            raise ValueError('all stabilizers must have the same length')
+        invalid = set(stab) - VALID_PAULIS
+        if invalid:
+            raise ValueError(
+                "stabilizers may only contain Pauli symbols from {'I', 'X', 'Y', 'Z'}"
+            )
+    return N
+
+
+def _validate_partition(control, target, N):
+    if len(set(control)) != len(control):
+        raise ValueError('control qubits must not contain duplicates')
+    if len(set(target)) != len(target):
+        raise ValueError('target qubits must not contain duplicates')
+    if set(control).intersection(set(target)):
+        raise ValueError('c and t must have empty intersection')
+
+    for idx in control:
+        if idx < 0 or idx >= N:
+            raise ValueError('control qubits must be labelled from 0 to N-1')
+    for idx in target:
+        if idx < 0 or idx >= N:
+            raise ValueError('target qubits must be labelled from 0 to N-1')
+
+
 def convert(stabs, control=None, target=None, shuffle=False):
     """
     Returns a graph state that is local Clifford unitary equivalent to the given stabilizer state.
@@ -37,33 +77,26 @@ def convert(stabs, control=None, target=None, shuffle=False):
         control = []
     if target is None:
         target = []
-    # number of qubits N and number of stabilizers Ns    
-    N = len(stabs[0])
+    else:
+        target = list(target)
+    control = list(control)
+
+    # number of qubits N and number of stabilizers Ns
+    N = _validate_stabilizers(stabs)
     Ns = len(stabs)
+    _validate_partition(control, target, N)
+
     # binary representation
-    A = np.array([[stabs[j][i] in {'Y', 'Z'} for j in range(N)] for i in range(Ns)] +
-                 [[stabs[j][i] in {'Y', 'X'} for j in range(N)] for i in range(Ns)], dtype=int)
-    # raise Exception if there are not enough stabilizers
-    if Ns < N:
-        raise Exception('The number of stabilizers in S can not be smaller than the number of qubits')
+    A = np.array([[stabs[j][i] in {'Y', 'Z'} for j in range(N)] for i in range(N)] +
+                 [[stabs[j][i] in {'Y', 'X'} for j in range(N)] for i in range(N)], dtype=int)
     # raise Exception if rank(p) is not N
     if gb.rank(gb.gauss(A)) != N:
-        raise Exception('S must contain the same number of independent stabilizers than qubits')
+        raise ValueError('S must contain the same number of independent stabilizers as qubits')
     # raise Exception if stabilizers do not commute
     for i in range(Ns-1):
         for j in range(i+1, Ns):
             if A[:N, i].dot(A[N:, j]) % 2 != A[:N, j].dot(A[N:, i]) % 2:
-                raise Exception('generators ' + stabs[i] + ' and ' + stabs[j] + ' do not commute')
-    # raise Exception if control and target qubits have non empty intersection
-    if set(control).intersection(set(target)):
-        raise Exception('c and t must have empty intersection')
-    # if a control or target qubit has a label bigger than N
-    for i in control:
-        if i >= N:
-            raise Exception('control qubits must be labelled from 0 to N-1')
-    for i in target:
-        if i >= N:
-            raise Exception('target qubits must be labelled from 0 to N-1')
+                raise ValueError('generators ' + stabs[i] + ' and ' + stabs[j] + ' do not commute')
     # shuffle rows
     if shuffle:
         remaining = set(range(N))-set(control).union(set(target))
@@ -82,11 +115,11 @@ def convert(stabs, control=None, target=None, shuffle=False):
     A = A[:, :-N]
     n = gb.rank(A[:, :N])
     if len(control) > n:
-        raise Exception('too many control qubits selected')
+        raise ValueError('too many control qubits selected')
     if len(target) > N - n:
-        raise Exception('too many target qubits selected')
+        raise ValueError('too many target qubits selected')
     if gb.rank(A[:n, :len(control)]) < len(control):
-        raise Exception('wrong selection of control qubits')    
+        raise ValueError('wrong selection of control qubits')
     # select control and target qubits
     for i in range(len(control), n):
         for j in range(i, N):
@@ -97,7 +130,7 @@ def convert(stabs, control=None, target=None, shuffle=False):
             #     target.append(qubits[j])
     target = target + list(set(range(N))-set(control).union(set(target)))  # add missing qubits
     if len(control) != n:
-        raise Exception('wrong selection of control and/or target qubits')    
+        raise ValueError('wrong selection of control and/or target qubits')
     # put A back to the original form
     A = A.T
     A = np.array(list(A[N:, :])+list(A[:N, :]))

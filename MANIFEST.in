@@ -1,5 +1,7 @@
 include README.md
 include LICENSE.txt
 include requirements.txt
+recursive-include tests *.py
+global-exclude .DS_Store
 
 prune **/build
