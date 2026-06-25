@@ -9,7 +9,8 @@ recover the original state.
 The package is useful when you want a graph-state form as an intermediate step
 for circuit synthesis or state-preparation workflows.
 
-[1] Manuscript under preparation.
+[1] Design and Experimental Performance of Local Entanglement Witness Operators
+https://arxiv.org/abs/1911.01144
 
 ## Installation
 
