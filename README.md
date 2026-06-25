@@ -46,6 +46,18 @@ import stabgraph
 G, c, t, z, R = stabgraph.convert(stabs, control=None, target=None, shuffle=False)
 ```
 
+Reconstruct the signed post-processing generators and compare them with another
+stabilizer description:
+
+```python
+signed_output = stabgraph.reconstruct_generators(G, t, z)
+same_group = stabgraph.same_binary_stabilizer_group(
+    [stab for _, stab in signed_output],
+    stabs,
+)
+phase_signs = stabgraph.infer_generator_phase_signs(stabs, signed_output)
+```
+
 ## Input contract
 
 - `stabs` must be a non-empty list of exactly `n` independent commuting Pauli
@@ -70,6 +82,21 @@ instead of failing later in the algorithm.
 - `z` is the subset of `c` where a pi/2 z-rotation is applied.
 - `R` is the binary matrix describing the stabilizer recombinations used during
   the transformation.
+
+## Reconstruction Helpers
+
+The package also provides a few lightweight helper functions for checking and
+post-processing the output of `convert()`:
+
+- `reconstruct_generators(G, t, z)` builds the signed generators obtained after
+  applying the returned local Cliffords to the graph-state generators.
+- `same_binary_stabilizer_group(left, right)` checks whether two generator lists
+  span the same binary stabilizer group over GF(2).
+- `infer_generator_phase_signs(reference_stabs, signed_generators)` infers the
+  `+/-1` phase of each reference generator relative to a signed generator basis,
+  without requiring phase tracking inside `convert()`.
+- `recombine_generators(generators, R)` applies a binary recombination matrix to
+  either unsigned or signed generators.
 
 ## Examples
 

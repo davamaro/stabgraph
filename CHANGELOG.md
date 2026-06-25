@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.5
+
+- Added public reconstruction helpers for graph-state generators, binary group
+  comparison, generator recombination, and post-hoc phase-sign inference.
+- Added non-CSS regression tests including the `[[5,1,3]]` logical `|0>` state
+  and a Steane logical `Y` eigenstate.
+- Added tests showing that the returned local Clifford data reproduces the input
+  binary stabilizer group and that `R` matches the reconstructed output basis up
+  to generator ordering.
+- Documented the reconstruction helper workflow in the README.
+
 ## 0.1.4
 
 - Added a GF(2) backend layer with an optional `galois` acceleration path and a

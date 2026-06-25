@@ -73,6 +73,132 @@ def test_steane_examples():
     assert set(result[1]).issuperset({0})
 
 
+@pytest.mark.parametrize(
+    "stabs, kwargs",
+    [
+        (["XX", "ZZ"], {}),
+        (["XXX", "ZZI", "IZZ"], {"control": [0], "target": [1]}),
+        (
+            [
+                "XXXXIII",
+                "IXXIXXI",
+                "IIXXIXX",
+                "ZZZZIII",
+                "IZZIZZI",
+                "IIZZIZZ",
+                "ZZZZZZZ",
+            ],
+            {"control": [0], "shuffle": True},
+        ),
+        (["XII", "IYI", "IIZ"], {"shuffle": True}),
+    ],
+)
+def test_output_data_reconstructs_input_stabilizer_group(stabs, kwargs):
+    result = stabgraph.convert(stabs, **kwargs)
+    reconstructed = stabgraph.reconstruct_generators(result[0], result[2], result[3])
+    assert stabgraph.same_binary_stabilizer_group([stab for _, stab in reconstructed], stabs)
+
+
+@pytest.mark.parametrize(
+    "stabs, expected_nonempty_z",
+    [
+        (["XZZXI", "IXZZX", "XIXZZ", "ZXIXZ", "ZZZZZ"], False),
+        (
+            [
+                "XXXXIII",
+                "IXXIXXI",
+                "IIXXIXX",
+                "ZZZZIII",
+                "IZZIZZI",
+                "IIZZIZZ",
+                "YYYYYYY",
+            ],
+            True,
+        ),
+    ],
+)
+def test_non_css_examples(stabs, expected_nonempty_z):
+    random.seed(0)
+    result = stabgraph.convert(stabs, shuffle=True)
+    _assert_valid_output(result, len(stabs))
+    reconstructed = stabgraph.reconstruct_generators(result[0], result[2], result[3])
+    assert stabgraph.same_binary_stabilizer_group([stab for _, stab in reconstructed], stabs)
+    if expected_nonempty_z:
+        assert result[3]
+    else:
+        assert result[3] == []
+
+
+def test_infer_generator_phase_signs_for_non_css_examples():
+    five_qubit_zero = ["XZZXI", "IXZZX", "XIXZZ", "ZXIXZ", "ZZZZZ"]
+    steane_y = [
+        "XXXXIII",
+        "IXXIXXI",
+        "IIXXIXX",
+        "ZZZZIII",
+        "IZZIZZI",
+        "IIZZIZZ",
+        "YYYYYYY",
+    ]
+
+    random.seed(0)
+    five_result = stabgraph.convert(five_qubit_zero, shuffle=True)
+    five_reconstructed = stabgraph.reconstruct_generators(
+        five_result[0], five_result[2], five_result[3]
+    )
+    assert stabgraph.infer_generator_phase_signs(five_qubit_zero, five_reconstructed) == [
+        -1,
+        -1,
+        1,
+        1,
+        1,
+    ]
+
+    random.seed(0)
+    steane_result = stabgraph.convert(steane_y, shuffle=True)
+    steane_reconstructed = stabgraph.reconstruct_generators(
+        steane_result[0], steane_result[2], steane_result[3]
+    )
+    assert steane_result[3]
+    assert stabgraph.infer_generator_phase_signs(steane_y, steane_reconstructed) == [
+        -1,
+        1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+    ]
+
+
+@pytest.mark.parametrize(
+    "stabs, kwargs",
+    [
+        (["XX", "ZZ"], {}),
+        (["XXX", "ZZI", "IZZ"], {"control": [0], "target": [1]}),
+        (["XII", "IYI", "IIZ"], {"shuffle": True}),
+        (["XZZXI", "IXZZX", "XIXZZ", "ZXIXZ", "ZZZZZ"], {"shuffle": True}),
+        (
+            [
+                "XXXXIII",
+                "IXXIXXI",
+                "IIXXIXX",
+                "ZZZZIII",
+                "IZZIZZI",
+                "IIZZIZZ",
+                "YYYYYYY",
+            ],
+            {"shuffle": True},
+        ),
+    ],
+)
+def test_recombination_matrix_matches_reconstructed_output_basis_up_to_order(stabs, kwargs):
+    result = stabgraph.convert(stabs, **kwargs)
+    reconstructed = stabgraph.reconstruct_generators(result[0], result[2], result[3])
+    recombined = stabgraph.recombine_generators(stabs, result[4])
+    assert sorted(stab for _, stab in recombined) == sorted(stab for _, stab in reconstructed)
+
+
 def test_gf2_backend_is_known():
     assert gf2.BACKEND in {"galois", "numpy"}
 
