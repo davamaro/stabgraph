@@ -8,6 +8,10 @@ recover the original state.
 
 The package is useful when you want a graph-state form as an intermediate step
 for circuit synthesis or state-preparation workflows.
+Internally, the binary linear algebra is carried out over GF(2). On supported
+Python versions, `stabgraph` uses the maintained `galois` package for this
+backend. If that backend is unavailable, it falls back to a bundled NumPy
+implementation so the package still works.
 
 [1] Design and Experimental Performance of Local Entanglement Witness Operators
 https://arxiv.org/abs/1911.01144
@@ -18,6 +22,12 @@ Install from PyPI:
 
 ```bash
 python -m pip install stabgraph
+```
+
+For the accelerated backend on Python versions where `galois` is supported:
+
+```bash
+python -m pip install "stabgraph[accel]"
 ```
 
 For local development:
@@ -116,7 +126,9 @@ GitHub Actions.
 ## Performance
 
 Large stabilizer states can be slow because the heavy work is dense binary linear
-algebra over GF(2). Notes for a future accelerated backend live in
+algebra over GF(2). This release also removes a few obvious Python-level
+bottlenecks in qubit reordering and Pauli-to-binary conversion. Notes for future
+backend work live in
 [docs/ACCELERATION_NOTES.md](docs/ACCELERATION_NOTES.md).
 
 ## Release notes

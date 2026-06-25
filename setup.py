@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 long_description=io.open("README.md",encoding='utf-8').read()
 
 setup(name='stabgraph',
-      version='0.1.3',
+      version='0.1.4',
       description='Transforms stabilizer state into graph state',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -37,8 +37,10 @@ setup(name='stabgraph',
       python_requires='>=3.9',
       install_requires=[
           'numpy',
+          "galois>=0.4.11; python_version < '3.13'",
       ],
       extras_require={
+          'accel': ["galois>=0.4.11; python_version < '3.13'"],
           'test': ['pytest'],
       },
       include_package_data=True)

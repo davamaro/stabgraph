@@ -6,9 +6,9 @@ Created on Thu Jun 27 15:32:08 2019
 @author: davamaro
 """
 
-import numpy as np
 import random
-from . import gauss_binary as gb
+import numpy as np
+from . import gf2
 
 
 VALID_PAULIS = {'I', 'X', 'Y', 'Z'}
@@ -33,6 +33,13 @@ def _validate_stabilizers(stabs):
                 "stabilizers may only contain Pauli symbols from {'I', 'X', 'Y', 'Z'}"
             )
     return N
+
+
+def _binary_symplectic_matrix(stabs, N):
+    encoded = np.frombuffer("".join(stabs).encode("ascii"), dtype=np.uint8).reshape(N, N)
+    z_block = np.isin(encoded, (ord("Y"), ord("Z"))).T.astype(np.uint8, copy=False)
+    x_block = np.isin(encoded, (ord("Y"), ord("X"))).T.astype(np.uint8, copy=False)
+    return np.vstack((z_block, x_block))
 
 
 def _validate_partition(control, target, N):
@@ -83,42 +90,42 @@ def convert(stabs, control=None, target=None, shuffle=False):
 
     # number of qubits N and number of stabilizers Ns
     N = _validate_stabilizers(stabs)
-    Ns = len(stabs)
     _validate_partition(control, target, N)
 
     # binary representation
-    A = np.array([[stabs[j][i] in {'Y', 'Z'} for j in range(N)] for i in range(N)] +
-                 [[stabs[j][i] in {'Y', 'X'} for j in range(N)] for i in range(N)], dtype=int)
+    A = _binary_symplectic_matrix(stabs, N)
     # raise Exception if rank(p) is not N
-    if gb.rank(gb.gauss(A)) != N:
+    if gf2.rank(A) != N:
         raise ValueError('S must contain the same number of independent stabilizers as qubits')
     # raise Exception if stabilizers do not commute
-    for i in range(Ns-1):
-        for j in range(i+1, Ns):
-            if A[:N, i].dot(A[N:, j]) % 2 != A[:N, j].dot(A[N:, i]) % 2:
-                raise ValueError('generators ' + stabs[i] + ' and ' + stabs[j] + ' do not commute')
+    commutator = ((A[:N].T @ A[N:]) + (A[N:].T @ A[:N])) % 2
+    if np.any(commutator):
+        rows, cols = np.argwhere(commutator)
+        i, j = next((i, j) for i, j in zip(rows.tolist(), cols.tolist()) if i < j)
+        raise ValueError('generators ' + stabs[i] + ' and ' + stabs[j] + ' do not commute')
     # shuffle rows
+    selected = set(control).union(target)
+    remaining = [q for q in range(N) if q not in selected]
     if shuffle:
-        remaining = set(range(N))-set(control).union(set(target))
-        qubits = control + random.sample(sorted(remaining), N-len(control)-len(target)) + target
+        qubits = control + random.sample(remaining, len(remaining)) + target
     else:
-        remaining = set(range(N)) - set(control).union(set(target))
-        qubits = control + list(remaining) + target
+        qubits = control + remaining + target
     # reorder rows in A
-    A = np.array([A[qubits[i]] for i in range(N)] + [A[qubits[i]+N] for i in range(N)])
+    permutation = np.asarray(qubits, dtype=int)
+    A = np.concatenate((A[permutation], A[permutation + N]), axis=0)
     # put A in the form that allows to make Gauss elimination in the right way add the identity to monitor the
     # recombinations performed by the Gaussian elimination
-    A = np.array(list(A[N:, :])+list(A[:N, :])+list(np.eye(N, dtype=int))).T
+    A = np.concatenate((A[N:, :], A[:N, :], np.eye(N, dtype=np.uint8)), axis=0).T
     # perform the Gaussian elimination and identify the matrix R that performs that recombination
-    A = gb.gauss(A)
+    A = gf2.gauss(A)
     R = A[:, -N:].T
     A = A[:, :-N]
-    n = gb.rank(A[:, :N])
+    n = gf2.rank(A[:, :N])
     if len(control) > n:
         raise ValueError('too many control qubits selected')
     if len(target) > N - n:
         raise ValueError('too many target qubits selected')
-    if gb.rank(A[:n, :len(control)]) < len(control):
+    if gf2.rank(A[:n, :len(control)]) < len(control):
         raise ValueError('wrong selection of control qubits')
     # select control and target qubits
     for i in range(len(control), n):
@@ -128,20 +135,29 @@ def convert(stabs, control=None, target=None, shuffle=False):
                 break
             # elif qubits[j] not in target and qubits[j] not in control:
             #     target.append(qubits[j])
-    target = target + list(set(range(N))-set(control).union(set(target)))  # add missing qubits
+    target = target + [q for q in range(N) if q not in set(control).union(target)]  # add missing qubits
     if len(control) != n:
         raise ValueError('wrong selection of control and/or target qubits')
     # put A back to the original form
     A = A.T
-    A = np.array(list(A[N:, :])+list(A[:N, :]))
-    A = np.array([A[qubits.index(i)] for i in control] + [A[qubits.index(i)] for i in target] +
-                 [A[qubits.index(i)+N] for i in control] + [A[qubits.index(i)+N] for i in target])
+    A = np.concatenate((A[N:, :], A[:N, :]), axis=0)
+    qubit_positions = np.empty(N, dtype=int)
+    qubit_positions[permutation] = np.arange(N)
+    ordered_qubits = control + target
+    ordered_positions = qubit_positions[ordered_qubits]
+    A = np.concatenate(
+        (
+            A[ordered_positions],
+            A[ordered_positions + N],
+        ),
+        axis=0,
+    )
     # update the order of the qubits in the rows
-    qubits = control+target
+    qubits = ordered_qubits
     # build xlc and the inverse
     xlc = A[N:n+N, :n]
     if n != 0:
-        xlc_inv = gb.inverse(xlc)
+        xlc_inv = gf2.inverse(xlc)
     else:
         xlc_inv = np.zeros((0, 0), dtype=int)
     # identify the rest of blocks
@@ -151,17 +167,26 @@ def convert(stabs, control=None, target=None, shuffle=False):
     zrt = A[n:N, n:]
     # compute r
     if n != N:
-        zrt_inv = gb.inverse(zrt)
+        zrt_inv = gf2.inverse(zrt)
     else:
         zrt_inv = np.zeros((0, 0), dtype=int)
-    R = R.dot(np.block([[xlc_inv, np.zeros((n, N-n), dtype=int)], [zrt_inv.dot(zlt).dot(xlc_inv) % 2, zrt_inv]])) % 2
+    R = R.dot(
+        np.block(
+            [
+                [xlc_inv, np.zeros((n, N - n), dtype=np.uint8)],
+                [zrt_inv.dot(zlt).dot(xlc_inv) % 2, zrt_inv],
+            ]
+        )
+    ) % 2
     # compute C and B and obtain the list z of the qubits where the z-rotation is performed
     B = xlt.dot(xlc_inv) % 2
     C = (zlc+B.T.dot(zlt)).dot(xlc_inv) % 2
     z = [qubits[i] for i in range(n) if C[i, i]]
     C = (C + np.diag(np.diagonal(C))) % 2
     # Adjacency matrix
-    G = np.block([[C, B.T], [B, np.zeros((N-n, N-n), dtype=int)]])
-    G = np.array([G[qubits.index(i)] for i in range(N)])
-    G = np.array([G[:, qubits.index(i)] for i in range(N)]).T
+    G = np.block([[C, B.T], [B, np.zeros((N - n, N - n), dtype=np.uint8)]])
+    final_positions = np.empty(N, dtype=int)
+    final_positions[qubits] = np.arange(N)
+    G = G[final_positions]
+    G = G[:, final_positions]
     return G, sorted(control), sorted(target), sorted(z), R
