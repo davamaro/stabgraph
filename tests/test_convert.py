@@ -208,7 +208,8 @@ def test_gf2_backend_is_known():
     [
         ([], "non-empty"),
         (["", ""], "at least one qubit"),
-        (["XX", "ZZ", "XX"], "exactly N independent generators"),
+        (["XX", "ZZ", "XX"], "full-rank stabilizer state"),
+        (["XXX", "IZZ"], "full-rank stabilizer state"),
         (["XX", "Z"], "same length"),
         (["X_", "ZZ"], "Pauli symbols"),
         (["XX", "XZ"], "do not commute"),

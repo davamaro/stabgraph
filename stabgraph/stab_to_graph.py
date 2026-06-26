@@ -22,7 +22,13 @@ def _validate_stabilizers(stabs):
     if N == 0:
         raise ValueError('stabilizers must act on at least one qubit')
     if len(stabs) != N:
-        raise ValueError('stabs must contain exactly N independent generators for N qubits')
+        raise ValueError(
+            f"stabgraph.convert() expects a full-rank stabilizer state with exactly N generators on "
+            f"N qubits, but received {len(stabs)} generators on {N} qubits. "
+            "This usually means the input describes a code space or partially specified stabilizer set "
+            "rather than a single stabilizer state; add enough logical/sign-fixing generators to specify "
+            "one state before calling convert()."
+        )
 
     for stab in stabs:
         if len(stab) != N:
